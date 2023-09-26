@@ -9,11 +9,14 @@ function taskReminder() {
   var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), 'dd/MM/yyyy')
 
   //Fetching config informations
-  var reminder1 = configSheet.getRange('B2').getValue();
-  var reminder2 = configSheet.getRange('B3').getValue();
-  var mattermostChannelID = configSheet.getRange('B5').getValue();
-  var emailID = configSheet.getRange('B6').getValue();
-  var mattermostAccessToken = configSheet.getRange('B7').getValue();
+  var reminder1 = configSheet.getRange('B3').getValue();
+  var reminder2 = configSheet.getRange('B4').getValue();
+  var mattermostChannelID = configSheet.getRange('B8').getValue();
+  var emailId = configSheet.getRange('B11').getValue();
+  var mattermostAccessToken = configSheet.getRange('B9').getValue();
+
+  var emailID = verifyEmails(emailId)
+
   //Iterate over data in the Data sheet
   for(var i=2 ; i <= lastRow ; i++){
 
@@ -58,47 +61,70 @@ function taskReminder() {
 
 
 function createMattermostPost(mattermost_access_token,mattermostChannel_ID,itemname,expirebefore,comment) {
-  var mattermostUrl = configSheet.getRange('B4').getValue();; // Replace with your Mattermost API URL
-  var channelID = mattermostChannel_ID; // Replace with the ID of the channel where you want to post
-  var message_content = messageContent(itemname,expirebefore,comment,sheeturl);
-  
-  var payload = {
-    channel_id: channelID,
-    message: message_content.msg
-  };
-  
-  var options = {
-    method: 'post',
-    contentType: 'application/json',
-    headers: {
-      'Authorization': 'Bearer ' + mattermost_access_token
-    },
-    payload: JSON.stringify(payload)
-  };
-  
-  var response = UrlFetchApp.fetch(mattermostUrl, options);
-  
-  Logger.log(response.getContentText());
+
+  var mattermostUrl = configSheet.getRange('B7').getValue();
+
+  if(mattermostChannel_ID != '' || mattermost_access_token != '' || mattermostUrl != '' ){
+    var channelID = mattermostChannel_ID; // Replace with the ID of the channel where you want to post
+    var message_content = messageContent(itemname,expirebefore,comment,sheeturl);
+    
+    var payload = {
+      channel_id: channelID,
+      message: message_content.msg
+    };
+    
+    var options = {
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        'Authorization': 'Bearer ' + mattermost_access_token
+      },
+      payload: JSON.stringify(payload)
+    };
+    
+    var response = UrlFetchApp.fetch(mattermostUrl, options);
+    
+    Logger.log(response.getContentText());
+  }
 }
 
 
-function sendEmail(emailid, itemname, expirebefore, comment){
-  var emails = emailid.split(',');
-  var toEmail = emails[0];
-  var ccEmail = emails.slice(1).join(',');
-  var message_content = messageContent(itemname,expirebefore,comment,sheeturl);
-  MailApp.sendEmail({
-    to: `${toEmail}`,
-    subject: message_content.sub,
-    body: message_content.msg,
-    cc: `${ccEmail}`
-  })
+function sendEmail(emails, itemname, expirebefore, comment){
+  if (emails.length > 0){
+    var toEmail = emails[0];
+    var ccEmail = emails.slice(1).join(',');
+    var message_content = messageContent(itemname,expirebefore,comment,sheeturl);
+    MailApp.sendEmail({
+      to: `${toEmail}`,
+      subject: message_content.sub,
+      body: message_content.msg,
+      cc: `${ccEmail}`
+    })
+  }
 }
 
 
 function createDailyTimeTrigger() {
+  var emailID = configSheet.getRange('B11').getValue();
+  var invalidEmails = verifyEmails(emailID, true)
+
+  if(invalidEmails.length > 0){
+    var ui = SpreadsheetApp.getUi();
+    var response = ui.alert(
+      "Invalid Emails Detected",
+      "The following emails are not in a valid format:\n\n" +
+        invalidEmails.join("\n") +
+        "\n\nDo you want to continue? NOTE: If you click 'No', the trigger won't be updated",
+      ui.ButtonSet.YES_NO
+    );
+
+    if (response == ui.Button.NO) {
+      return;
+  }
+  }  
+  
   checkAndRemoveTrigger();
-  var triggerHour = configSheet.getRange('B8').getValue();
+  var triggerHour = configSheet.getRange('B5').getValue();
   ScriptApp.newTrigger('taskReminder')
   .timeBased()
   .atHour(triggerHour)
@@ -137,4 +163,32 @@ if(expirebefore <= 0){
   return {
     sub: subject,
     msg: message};
+}
+
+
+function verifyEmails(emailList,returnInvalid = false) {
+  var emails = emailList.split(",");
+
+  // Regular expression for email validation
+  var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+  var invalidEmails = [];
+  var validEmails = [];
+
+  // Iterate through the emails and check if they match the regex
+  for (var i = 0; i < emails.length; i++) {
+    if (!emailRegex.test(emails[i].trim())) {
+      invalidEmails.push(emails[i]);
+    }
+    else {
+      validEmails.push(emails[i]);
+    }
+  }
+
+  if(!returnInvalid){
+    return validEmails;
+  }
+  else{
+    return invalidEmails;
+  }
 }
