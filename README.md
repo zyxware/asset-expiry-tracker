@@ -1,7 +1,7 @@
 # Asset Expiry Tracker
 Asset Expiry Tracker is a tool designed for system administrators or project managers to effortlessly manage and track the expiry dates of critical services and assets, such as SSL certificates, domain names, and more. With Asset Expiry Tracker, admins can set personalized reminders, ensuring timely renewals and preventing potential service disruptions.
 
-![Config](https://github.com/zyxware/asset-expiry-tracker/assets/109938/c06fa7da-317c-4f5d-82e0-8869511b79c5)
+![Config](https://user-images.githubusercontent.com/137140972/271471162-447bcb5e-f98d-4677-8a96-154fc1a2412c.png)
 
 # How to Use This Tool
 [Make a copy of this sheet](https://docs.google.com/spreadsheets/d/15QrahRu29vNgV_UXCJi_bStJlMEVk6RXsi6mdRTB0d4/template/preview) and update the Config to connect with your Mattermost instance as well as Email. Make sure that you click on Update Trigger in the config sheet to get this sheet scheduled to run every day.
