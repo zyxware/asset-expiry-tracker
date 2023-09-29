@@ -84,7 +84,7 @@ function createMattermostPost(mattermost_access_token,mattermostChannel_ID,itemn
     
     var response = UrlFetchApp.fetch(mattermostUrl, options);
     
-    Logger.log(response.getContentText());
+    //Logger.log(response.getContentText());
   }
 }
 
