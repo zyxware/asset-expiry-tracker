@@ -50,7 +50,7 @@ function taskReminder() {
       dataSheet.getRange(i, 5).setValue('Second Reminder sent');
     }
 
-    else if (reminderDays == 0 && reminderDays == -7 && reminderDays == -14 && reminderDays == -21){
+    else if (reminderDays == 0 || reminderDays == -7 || reminderDays == -14 || reminderDays == -21){
       //Expired
       createMattermostPost(mattermostAccessToken,mattermostChannelID,itemName,reminderDays,comments)
       sendEmail(emailID,itemName,reminderDays,comments);
